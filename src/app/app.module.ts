@@ -8,7 +8,7 @@ import { Product1Component } from './product1/product1.component';
 import {ProductService} from './shared/product.service';
 import { Product2Component } from './product2/product2.component';
 import {LoginService} from './shared/login-service.service';
-import {AnotherProductService} from "./shared/another-product-service.service";
+import {AnotherProductService} from './shared/another-product-service.service';
 
 @NgModule({
   declarations: [
@@ -21,7 +21,8 @@ import {AnotherProductService} from "./shared/another-product-service.service";
     FormsModule,
     HttpModule
   ],
-  /*providers: [{provide: ProductService,
+  /*Factory错误使用例
+  providers: [{provide: ProductService,
     useFactory: () => {
     let lom: LoginService;
     const dev = Math.random() > 0.5;
@@ -33,7 +34,19 @@ import {AnotherProductService} from "./shared/another-product-service.service";
       return new AnotherProductService(lom);
     }
     }}, LoginService],*/
-  providers: [ProductService, LoginService],
+  providers: [{
+    provide: ProductService,
+    useFactory: (logger: LoginService, config) => {
+      if (config.isDev) {
+        return new ProductService(logger);
+      }else {
+        return new AnotherProductService(logger);
+      }
+    }, deps: [LoginService, 'APP_CONFIG']
+  }, LoginService, {
+    provide: 'APP_CONFIG', useValue: {isDev: false}
+  }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
